@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import { Vector, Ellipse } from './geometry';
 
 let width = 800;
-let height = 800;
+let height = 600;
 let svg = d3.select("body").insert("svg", ":first-child")
                            .attr("width", width)
                            .attr("height", height);
@@ -16,10 +16,10 @@ let originY = height / 2;
 let origin = new Vector(originX, originY);
 let fill = 'rgb(120,33,33)';
 let strokeColor = 'black';
-function fromCartesianX(x) { return originX + x; }
-function fromCartesianY(y) { return originY - y; }
-function toCartesianX(x) { return x - originX; }
-function toCartesianY(y) { return -y + originY; }
+function fromCartesianX(x) { return origin.x + x; }
+function fromCartesianY(y) { return origin.y - y; }
+function toCartesianX(x) { return x - origin.x; }
+function toCartesianY(y) { return -y + origin.y; }
 
 
 function createEllipseSVG(ellipse) {
@@ -45,7 +45,7 @@ function setupBehavior(ellipseSVG, sliders) {
 
   function setEllipsePosition(svg) {
     svg.attr("cx", function(d) { return fromCartesianX(d.center.x); })
-       .attr("cy", function(d) { return fromCartesianX(d.center.y); })
+       .attr("cy", function(d) { return fromCartesianY(d.center.y); })
        .attr("rx", function(d) { return d.majorAxisLength; })
        .attr("ry", function(d) { return d.minorAxisLength; });
 
