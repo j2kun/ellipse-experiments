@@ -80,11 +80,16 @@ function setupBehavior(ellipseSVG, pointSVG, sliders) {
        .attr("r", function(d) { return 10; });
   }
 
+  function setDecisionText() {
+    let decision = ellipse.datum().containsPoint(point.datum()) ? 'Yes' : 'No';
+    d3.select("#contains").text(decision);
+  }
 
   function dragged(d) {
     d.x += d3.event.dx;
     d.y -= d3.event.dy;
     setPointPosition(point);
+    setDecisionText();
   }
 
   rotationSlider.on("input", function() {
@@ -92,6 +97,7 @@ function setupBehavior(ellipseSVG, pointSVG, sliders) {
     let angleRadians = value * Math.PI / 180;
     ellipse.datum().rotationAngle = angleRadians;
     setEllipsePosition(ellipse);
+    setDecisionText();
   })
 
   // ellipse.call(d3.drag().on("drag", dragged));
