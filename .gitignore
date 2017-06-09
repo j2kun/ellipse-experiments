@@ -1,5 +1,6 @@
 *node_modules*
 js/build
 js/yarn.lock
+build/
 
 *DS_Store*
