@@ -68,8 +68,8 @@ function setupBehavior(ellipseSVG, pointSVG, sliders) {
     svg.attr('transform', function(d) {
       let angleDegrees = (-d.rotationAngle) * (180 / Math.PI);
       let center = d.center;
-      let centerX = fromCartesianX(center.x);
-      let centerY = fromCartesianY(center.y);
+      let centerX = fromCartesianX(0);
+      let centerY = fromCartesianY(0);
       return ("rotate(" + angleDegrees + " " + centerX + " " + centerY + ")");
     });
   }
@@ -113,7 +113,7 @@ function createSliders() {
   };
 }
 
-let e1 = new Ellipse(new Vector(0, 0), 2 * unit, unit, Math.PI / 6);
+let e1 = new Ellipse(new Vector(-unit, unit), 2 * unit, unit, Math.PI / 6);
 let p = new Vector(unit, -2 * unit);
 let ellipseSVG = createEllipseSVG(e1);
 let pointSVG = createPointSVG(p);
@@ -122,3 +122,18 @@ setupPointStyle(pointSVG);
 
 let sliders = createSliders();
 setupBehavior(ellipseSVG, pointSVG, sliders);
+
+
+for (var i=0; i < width; i++) {
+  for (var j=0; j < width; j++) {
+    let v = new Vector(toCartesianX(i), toCartesianY(j));
+    if (e1.containsPoint(v)) {
+      svg.append("circle").datum(v)
+         .attr("fill", function (d) { return 'rgb(33,33,120)'; })
+         .attr("fill-opacity", 0.3)
+         .attr("cx", function(d) { return fromCartesianX(d.x); })
+         .attr("cy", function(d) { return fromCartesianY(d.y); })
+         .attr("r", function(d) { return 1; });
+    }
+  }
+}
