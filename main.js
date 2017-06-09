@@ -29,6 +29,12 @@ function createEllipseSVG(ellipse) {
   };
 }
 
+function createPointSVG(vector) {
+  let pointSVG = svg.append("circle").datum(vector);
+  return {
+    point: pointSVG
+  };
+}
 
 function setupEllipseStyle(ellipseSVG) {
   let {ellipse} = ellipseSVG;
@@ -39,8 +45,18 @@ function setupEllipseStyle(ellipseSVG) {
          .attr("id", "ellipse");
 }
 
-function setupBehavior(ellipseSVG, sliders) {
+function setupPointStyle(pointSVG) {
+  let {point} = pointSVG;
+  point.attr("fill", function (d) { return 'rgb(33,120,33)'; })
+       .attr("stroke", function (d) { return strokeColor; })
+       .attr("stroke-width", 2)
+       .attr("fill-opacity", 0.3)
+       .attr("id", "point");
+}
+
+function setupBehavior(ellipseSVG, pointSVG, sliders) {
   let {ellipse} = ellipseSVG;
+  let {point} = pointSVG;
   let {rotationSlider} = sliders;
 
   function setEllipsePosition(svg) {
@@ -58,10 +74,17 @@ function setupBehavior(ellipseSVG, sliders) {
     });
   }
 
-  function dragged(d, labelName) {
+  function setPointPosition(svg) {
+    svg.attr("cx", function(d) { return fromCartesianX(d.x); })
+       .attr("cy", function(d) { return fromCartesianY(d.y); })
+       .attr("r", function(d) { return 10; });
+  }
+
+
+  function dragged(d) {
     d.x += d3.event.dx;
     d.y -= d3.event.dy;
-    // update svgs
+    setPointPosition(point);
   }
 
   rotationSlider.on("input", function() {
@@ -72,7 +95,9 @@ function setupBehavior(ellipseSVG, sliders) {
   })
 
   // ellipse.call(d3.drag().on("drag", dragged));
+  point.call(d3.drag().on("drag", dragged));
   setEllipsePosition(ellipse);
+  setPointPosition(point);
 }
 
 function createSliders() {
@@ -83,8 +108,11 @@ function createSliders() {
 }
 
 let e1 = new Ellipse(new Vector(0, 0), 2 * unit, unit, Math.PI / 6);
+let p = new Vector(unit, -2 * unit);
 let ellipseSVG = createEllipseSVG(e1);
+let pointSVG = createPointSVG(p);
 setupEllipseStyle(ellipseSVG);
+setupPointStyle(pointSVG);
 
 let sliders = createSliders();
-setupBehavior(ellipseSVG, sliders);
+setupBehavior(ellipseSVG, pointSVG, sliders);
