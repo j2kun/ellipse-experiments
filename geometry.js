@@ -30,6 +30,26 @@ class Ellipse {
     this.minorAxisLength = minorAxisLength;
     this.rotationAngle = rotationAngle;  // the rotation about the ellipse's center
   }
+
+  // Ellipse, Vector -> boolean
+  // Return true if the ellipse contains the vector
+  containsPoint(vector) {
+    let canonicalX = (
+      (vector.x - this.center.x) * Math.cos(this.rotationAngle) +
+      (vector.y - this.center.y) * Math.sin(this.rotationAngle)
+    );
+    let canonicalY = (
+      -(vector.x - this.center.x) * Math.sin(this.rotationAngle) +
+      (vector.y - this.center.y) * Math.cos(this.rotationAngle)
+    );
+
+    let eqn = (
+      Math.pow(canonicalX / this.majorAxisLength, 2) +
+      Math.pow(canonicalY / this.minorAxisLength, 2)
+    );
+
+    return eqn <= 1;
+  }
 }
 
 
