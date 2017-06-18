@@ -5,9 +5,26 @@
 </head>
 <body>
 <form action="">
-  <span class="rangelabel">Rotation: </span><input type="range" min="0" max="360" id="rotationAngle">
+<p>
+ <label>a_11: </label>
+ <input type="range" min="-100" max="100" value="0" id="a11">
+</p>
+<p>
+ <label>a_12: </label>
+ <input type="range" min="-100" max="100" value="0" id="a12">
+</p>
+<p>
+ <label>a_21: </label>
+ <input type="range" min="-100" max="100" value="0" id="a21">
+</p>
+<p>
+ <label>a_22: </label>
+ <input type="range" min="-100" max="100" value="0" id="a22">
+</p>
 </form>
-<p>Is the point in the ellipse? <span id="contains">No</span></p>
+<textarea rows="10" cols="50" id="matrix_input">
+</textarea>
+<script src="lib/numeric-1.2.6.min.js"></script>
 <script src="build/main.bundle.js"></script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 import * as d3 from 'd3';
 import { Vector, Ellipse } from './geometry';
 
-let width = 800;
-let height = 600;
+let width = 600;
+let height = 400;
 let svg = d3.select("body").insert("svg", ":first-child")
                            .attr("width", width)
                            .attr("height", height);
@@ -10,7 +10,7 @@ let svg = d3.select("body").insert("svg", ":first-child")
 // should abstract this into something like EuclideanPlane
 // A mixin on any object that has x, y attributes
 // which just adds renderX and renderY methods
-let unit = 60;  // unit to pixel conversion
+let unit = 20;  // unit to pixel conversion
 let originX = width / 2;
 let originY = height / 2;
 let origin = new Vector(originX, originY);
@@ -21,6 +21,13 @@ function fromCartesianY(y) { return origin.y - y; }
 function toCartesianX(x) { return x - origin.x; }
 function toCartesianY(y) { return -y + origin.y; }
 
+let matrix = {
+  'a11': 1, 
+  'a12': 0, 
+  'a21': 0, 
+  'a22': 1,
+};
+
 
 function createEllipseSVG(ellipse) {
   let ellipseSVG = svg.append("ellipse").datum(ellipse);
@@ -29,111 +36,94 @@ function createEllipseSVG(ellipse) {
   };
 }
 
-function createPointSVG(vector) {
-  let pointSVG = svg.append("circle").datum(vector);
-  return {
-    point: pointSVG
-  };
-}
-
-function setupEllipseStyle(ellipseSVG) {
+function setupEllipseStyle(ellipseSVG, color) {
   let {ellipse} = ellipseSVG;
-  ellipse.attr("fill", function (d) { return fill; })
+  if (!color) {
+    color = fill;
+  }
+  ellipse.attr("fill", color)
          .attr("stroke", function (d) { return strokeColor; })
          .attr("stroke-width", 2)
-         .attr("fill-opacity", 0.3)
-         .attr("id", "ellipse");
+         .attr("fill-opacity", 0.3);
 }
 
-function setupPointStyle(pointSVG) {
-  let {point} = pointSVG;
-  point.attr("fill", function (d) { return 'rgb(33,120,33)'; })
-       .attr("stroke", function (d) { return strokeColor; })
-       .attr("stroke-width", 2)
-       .attr("fill-opacity", 0.3)
-       .attr("id", "point");
+function setEllipsePosition(svg) {
+  /*
+  svg.attr("cx", function(d) { return fromCartesianX(d.center.x); })
+     .attr("cy", function(d) { return fromCartesianY(d.center.y); })
+     .attr("rx", function(d) { return d.majorAxisLength; })
+     .attr("ry", function(d) { return d.minorAxisLength; });
+  */
+
+  svg.attr("cx", fromCartesianX(0))
+     .attr("cy", fromCartesianY(0))
+     .attr("rx", unit)
+     .attr("ry", unit);
+
+  svg.attr('transform', function(d) {
+    let angleDegrees = (-d.rotationAngle) * (180 / Math.PI);
+    let center = d.center;
+    let centerX = fromCartesianX(center.x);
+    let centerY = fromCartesianY(center.y);
+    return ("matrix(" + 
+      matrix['a11'] + " " + matrix['a21'] + " " + 
+      matrix['a12'] + " " + matrix['a22'] + " 0 0)"
+    );
+  });
 }
 
-function setupBehavior(ellipseSVG, pointSVG, sliders) {
+function setMatrixText() {
+  let output = (
+    '[[ ' + matrix['a11'] + ', ' + matrix['a12'] + ' ],\n' + 
+    ' [ ' + matrix['a21'] + ', ' + matrix['a22'] + ' ]]'
+  );
+  d3.select('#matrix_input').text(output);
+}
+
+function setupBehavior(ellipseSVG, sliders) {
   let {ellipse} = ellipseSVG;
-  let {point} = pointSVG;
-  let {rotationSlider} = sliders;
+  let {a11, a12, a21, a22} = sliders;
 
-  function setEllipsePosition(svg) {
-    svg.attr("cx", function(d) { return fromCartesianX(d.center.x); })
-       .attr("cy", function(d) { return fromCartesianY(d.center.y); })
-       .attr("rx", function(d) { return d.majorAxisLength; })
-       .attr("ry", function(d) { return d.minorAxisLength; });
-
-    svg.attr('transform', function(d) {
-      let angleDegrees = (-d.rotationAngle) * (180 / Math.PI);
-      let center = d.center;
-      let centerX = fromCartesianX(0);
-      let centerY = fromCartesianY(0);
-      return ("rotate(" + angleDegrees + " " + centerX + " " + centerY + ")");
-    });
-  }
-
-  function setPointPosition(svg) {
-    svg.attr("cx", function(d) { return fromCartesianX(d.x); })
-       .attr("cy", function(d) { return fromCartesianY(d.y); })
-       .attr("r", function(d) { return 10; });
-  }
-
-  function setDecisionText() {
-    let decision = ellipse.datum().containsPoint(point.datum()) ? 'Yes' : 'No';
-    d3.select("#contains").text(decision);
-  }
-
+  /*
   function dragged(d) {
     d.x += d3.event.dx;
     d.y -= d3.event.dy;
-    setPointPosition(point);
-    setDecisionText();
+  }
+  */
+
+  for (let k in sliders) {
+    let slider = sliders[k];
+    slider.on("input", function() {
+      let value = +this.value;
+      matrix[k] = value;
+      setMatrixText();
+      setEllipsePosition(ellipse);
+    });
   }
 
-  rotationSlider.on("input", function() {
-    let value = +this.value;
-    let angleRadians = value * Math.PI / 180;
-    ellipse.datum().rotationAngle = angleRadians;
-    setEllipsePosition(ellipse);
-    setDecisionText();
-  })
-
-  // ellipse.call(d3.drag().on("drag", dragged));
-  point.call(d3.drag().on("drag", dragged));
+  // point.call(d3.drag().on("drag", dragged));
   setEllipsePosition(ellipse);
-  setPointPosition(point);
 }
 
 function createSliders() {
-  let rotationSlider = d3.select('#rotationAngle');
-  return {
-    rotationSlider: rotationSlider
-  };
+  let ids = ['a11', 'a12', 'a21', 'a22'];
+  let sliders = {};
+  ids.forEach(function(x) { 
+    sliders[x] = d3.select('#' + x);
+    sliders[x].attr('value', parseInt(matrix[x] / unit));
+  });
+  return sliders;
 }
 
-let e1 = new Ellipse(new Vector(-unit, unit), 2 * unit, unit, Math.PI / 6);
+let circle = new Ellipse(new Vector(0, 0), unit, unit, 0);
+let circleSVG = createEllipseSVG(circle);
+setupEllipseStyle(circleSVG, 'rgb(33,33,120)');
+setEllipsePosition(circleSVG.ellipse);
+
+let e1 = new Ellipse(new Vector(0, 0), 2 * unit, unit, Math.PI / 6);
 let p = new Vector(unit, -2 * unit);
 let ellipseSVG = createEllipseSVG(e1);
-let pointSVG = createPointSVG(p);
 setupEllipseStyle(ellipseSVG);
-setupPointStyle(pointSVG);
 
 let sliders = createSliders();
-setupBehavior(ellipseSVG, pointSVG, sliders);
-
-
-for (var i=0; i < width; i++) {
-  for (var j=0; j < width; j++) {
-    let v = new Vector(toCartesianX(i), toCartesianY(j));
-    if (e1.containsPoint(v)) {
-      svg.append("circle").datum(v)
-         .attr("fill", function (d) { return 'rgb(33,33,120)'; })
-         .attr("fill-opacity", 0.3)
-         .attr("cx", function(d) { return fromCartesianX(d.x); })
-         .attr("cy", function(d) { return fromCartesianY(d.y); })
-         .attr("r", function(d) { return 1; });
-    }
-  }
-}
+setupBehavior(ellipseSVG, sliders);
